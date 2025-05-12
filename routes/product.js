@@ -16,6 +16,7 @@ router.put('/updateProduct/:productId', isAuth, productController.updateProduct)
 router.delete('/deleteProduct/:productId', isAuth, productController.deleteProduct)
 
 router.get('/getProductByCategory/:category', productController.getProductByCategory)
+router.get('/suggest', productController.getSuggestProduct)
 
 
 module.exports = router;

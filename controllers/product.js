@@ -117,3 +117,25 @@ exports.deleteProduct = async (req, res) => {
         res.status(500).json({ success: false, error: error.message })
     }
 }
+
+exports.getSuggestProduct = async (req, res) => {
+    const search = req.query.search || "";
+    try {
+        const suggestions = await Product.find({
+            $or: [
+                { productName: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } },
+                {
+                    price: !isNaN(search)
+                        ? Number(search)
+                        : null, // If search is a number, match price exactly
+                },
+            ],
+        })
+            .limit(5);
+
+        res.json(suggestions);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
