@@ -5,8 +5,8 @@ const customerValidator = require('../middlewares/customerValidator')
 const isAuth = require('../middlewares/isAuth')
 
 
-router.post('/signup', customerValidator.customerValidator, customerController.postSignup)
-router.post('/login', customerValidator.loginValidator, customerController.postLogin)
+router.post('/signup', customerController.postSignup)
+router.post('/login', customerController.postLogin)
 router.get('/customerData', isAuth, customerController.customerData);
 router.put('/updateProfile', isAuth, customerController.updateProfile);
 

@@ -1,16 +1,14 @@
 const Customer = require('../models/customer');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator')
-const crypto = require('crypto')
+const { validationResult } = require('express-validator');
+const { decryptData } = require('../utils/decrypt')
 
 exports.postSignup = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() })
-    }
-    const { name, email, password, phone, address } = req.body;
     try {
+        const { payload } = req.body;
+        const decrypted = decryptData(payload);
+        const { name, email, password, phone, address } = decrypted;
         const customer = await Customer.findOne({ email: email })
         if (customer) {
             return res.status(401).json({ message: "user already exist" })
@@ -27,13 +25,10 @@ exports.postSignup = async (req, res) => {
 }
 
 exports.postLogin = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() })
-    }
-    const { email, password } = req.body;
     try {
-
+        const { payload } = req.body;
+        const decrypted = decryptData(payload);
+        const { email, password } = decrypted;
         const user = await Customer.findOne({ email: email });
         if (!user) {
             return res.status(403).json({ message: "Invalid Credentials" })
@@ -66,14 +61,15 @@ exports.customerData = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     const userId = req.userId
-    const userData = req.body
     try {
         if (!req.isAuth) {
             return res.status(403).json({ success: false, message: "Not Authenticated" })
         }
+        const { payload } = req.body;
+        const decrypted = decryptData(payload);
         const customer = await Customer.findByIdAndUpdate(
             userId,
-            userData,
+            decrypted,
             { new: true }
         )
         if (!customer) {

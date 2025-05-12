@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser')
 
 const userRoutes = require('../routes/user');
 const productRoutes = require('../routes/product');
@@ -14,11 +15,13 @@ const PORT = 5000
 
 
 app.use(cors({
-    origin: "*",  // Allow all origins (you can replace "*" with specific domains if needed)
+    origin: ["http://localhost:5173", "https://purecots.com"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization", 'ngrok-skip-browser-warning'],
+    allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
+app.use(cookieParser())
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
