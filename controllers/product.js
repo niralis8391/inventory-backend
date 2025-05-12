@@ -125,11 +125,7 @@ exports.getSuggestProduct = async (req, res) => {
             $or: [
                 { productName: { $regex: search, $options: "i" } },
                 { description: { $regex: search, $options: "i" } },
-                {
-                    price: !isNaN(search)
-                        ? Number(search)
-                        : null, // If search is a number, match price exactly
-                },
+                { category: { $regex: search, $options: "i" } },
             ],
         })
             .limit(5);
