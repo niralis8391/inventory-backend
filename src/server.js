@@ -12,10 +12,10 @@ const orderRoutes = require('../routes/order');
 const app = express();
 const PORT = 5000
 
-
+// "http://localhost:5173", "http://localhost:5174", 
 
 app.use(cors({
-    origin: ["http://localhost:5173", "https://www.purecots.com", "https://inventory-admin-xi.vercel.app"],
+    origin: ["https://www.purecots.com", "https://inventory-admin-xi.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],

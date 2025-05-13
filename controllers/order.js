@@ -62,3 +62,57 @@ exports.getOrderDetails = async (req, res) => {
     }
 }
 
+exports.pendingOrderDetails = async (req, res) => {
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ success: false, message: "Not authenticated" })
+        }
+        const order = await Order.find({ status: 'pending' }).populate("items.product");
+        if (!order) {
+            return res.status(404).json({ success: false, message: "order not found" })
+        }
+        res.status(200).json({ succesL: true, message: "order found", data: order })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
+exports.ordersCount = async (req, res) => {
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ success: false, message: "Not Authenticated" })
+        }
+        const orderCount = await Order.countDocuments();
+        if (!orderCount) {
+            return res.status(404).json({ success: false, message: "Product count not found" });
+        }
+        res.status(200).json({ success: true, message: "product count found", data: orderCount })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
+exports.updateOrderStatus = async (req, res) => {
+    const orderId = req.params.orderId;
+    try {
+        const { status } = req.body;
+        const validStatuses = ['pending', 'completed', 'cancelled'];
+
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: "Invalid status value" });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            { status },
+            { new: true }
+        );
+        if (!order) {
+            return res.status(400).json({ success: false, message: "order not updated" })
+        }
+        res.status(200).json({ success: true, message: "order status updated" })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
