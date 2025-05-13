@@ -15,7 +15,7 @@ const PORT = 5000
 
 
 app.use(cors({
-    origin: ["http://localhost:5173", "https://www.purecots.com"],
+    origin: ["http://localhost:5173", "https://www.purecots.com", "https://inventory-admin-xi.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
