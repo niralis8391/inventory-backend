@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 exports.createOrder = async (req, res) => {
     const orderNumber = `ORD-${uuidv4().slice(0, 8).toUpperCase()}`;
-    const { items, totalAmount } = req.body;
+    const { items, totalAmount, shippingDetails } = req.body;
     const customer = req.userId
     try {
         if (!req.userId) {
@@ -14,9 +14,12 @@ exports.createOrder = async (req, res) => {
             quantity: item.quantity
         }));
         const newOrder = new Order({
+            name: shippingDetails.name,
+            phone: shippingDetails.phone,
+            address: shippingDetails.address,
+            items: formattedItems,
             orderNumber,
             customer,
-            items: formattedItems,
             totalAmount
         });
 

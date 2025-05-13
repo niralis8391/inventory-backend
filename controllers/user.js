@@ -2,16 +2,18 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require("express-validator");
+const { decryptData } = require('../utils/decrypt')
+
 
 
 exports.postSignup = async (req, res) => {
-    const { username, email, password, phone } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() })
-    }
     try {
-
+        const { payload } = req.body;
+        const decrypted = decryptData(payload);
+        const { username, email, password, phone } = decrypted;
+        if (!decrypted.username || !decrypted.email || !decrypted.password) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
         const user = await User.findOne({ email: email })
         if (user) {
             return res.status(401).json({ message: "user already exists" })
@@ -31,13 +33,10 @@ exports.postSignup = async (req, res) => {
 }
 
 exports.postLogin = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() })
-    }
-    const { email, password } = req.body;
     try {
-
+        const { payload } = req.body;
+        const decrypted = decryptData(payload);
+        const { email, password } = decrypted;
         const user = await User.findOne({ email: email });
         if (!user) {
             return res.status(403).json({ message: "Invalid Credentials" })

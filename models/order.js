@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
     orderNumber: { type: String, unique: true, required: true },
-
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true },
-
+    name: { type: String, required: true },
+    phone: { type: Number, required: true },
+    address: { type: String, required: true },
     items: {
         type: [
             {
@@ -15,15 +16,12 @@ const orderSchema = new mongoose.Schema({
         ],
         required: true
     },
-
     method: {
         type: String,
         enum: ["upi", "cash"],
         default: "cash"
     },
-
     totalAmount: { type: Number, required: true },
-
     status: {
         type: String,
         enum: ["pending", "completed", "cancelled"],
