@@ -62,21 +62,6 @@ exports.getOrderDetails = async (req, res) => {
     }
 }
 
-exports.pendingOrderDetails = async (req, res) => {
-    try {
-        if (!req.isAuth) {
-            return res.status(403).json({ success: false, message: "Not authenticated" })
-        }
-        const order = await Order.find({ status: 'pending' }).populate("items.product");
-        if (!order) {
-            return res.status(404).json({ success: false, message: "order not found" })
-        }
-        res.status(200).json({ succesL: true, message: "order found", data: order })
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message })
-    }
-}
-
 exports.ordersCount = async (req, res) => {
     try {
         if (!req.isAuth) {
@@ -111,6 +96,51 @@ exports.updateOrderStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: "order not updated" })
         }
         res.status(200).json({ success: true, message: "order status updated" })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
+exports.pendingOrderDetails = async (req, res) => {
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ success: false, message: "Not authenticated" })
+        }
+        const order = await Order.find({ status: 'pending' }).populate("items.product");
+        if (!order) {
+            return res.status(404).json({ success: false, message: "order not found" })
+        }
+        res.status(200).json({ succesL: true, message: "order found", data: order })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
+exports.completedOrderDetails = async (req, res) => {
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ success: false, message: "Not Authenticated" });
+        }
+        const order = await Order.find({ status: 'completed' }).populate("items.product");
+        if (!order) {
+            return res.status(404).json({ success: false, message: "order not found" })
+        }
+        res.status(200).json({ succesL: true, message: "order found", data: order })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
+exports.cancelledOrderDetails = async (req, res) => {
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ success: false, message: "Not Authenticated" });
+        }
+        const order = await Order.find({ status: 'cancelled' }).populate("items.product");
+        if (!order) {
+            return res.status(404).json({ success: false, message: "order not found" })
+        }
+        res.status(200).json({ succesL: true, message: "order found", data: order })
     } catch (error) {
         res.status(500).json({ success: false, error: error.message })
     }
