@@ -15,6 +15,7 @@ router.get('/conmpletedOrders', isAuth, orderController.completedOrderDetails)
 router.get('/cancelledOrders', isAuth, orderController.cancelledOrderDetails)
 
 router.put('/updateStatus/:orderId', isAuth, orderController.updateOrderStatus)
+router.delete('/deleteOrder/:orderId', isAuth, orderController.deleteOrder)
 
 
 module.exports = router;

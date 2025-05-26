@@ -12,7 +12,7 @@ const orderRoutes = require('../routes/order');
 const app = express();
 const PORT = 5000
 
-// "http://localhost:5173", "http://localhost:5174", 
+// "http://localhost:5173", "http://localhost:5174",
 
 app.use(cors({
     origin: ["https://www.purecots.com", "https://admin.purecots.com"],

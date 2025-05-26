@@ -9,7 +9,11 @@ const productSchema = new mongoose.Schema({
     subCategory: { type: String, required: true },
     price: { type: Number, required: true },
     quantity: { type: Number, default: 0, required: true },
-    image: { type: String, required: true },
+    image: {
+        url: { type: String, required: true },
+        secure_url: { type: String }, // Optional
+        public_id: { type: String, required: true }
+    }
     // sku: { type: String, unique: true },
     // supplier: { type: String },
 }, { timestamps: true });

@@ -1,21 +1,113 @@
-const Product = require('../models/product');
-const { validationResult } = require('express-validator')
+const { validationResult } = require('express-validator');
+const Product = require('../models/Product');
+const cloudinary = require('../utils/cloudinary');
 
 exports.addProduct = async (req, res) => {
-    const { productName, description, category, subCategory, price, quantity, image } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() })
-    }
+    const { productName, description, category, subCategory, price, size, quantity } = req.body;
+
     if (!req.isAuth) {
-        return res.status(403).json({ message: "unauthenticated" })
+        return res.status(403).json({ message: "Unauthenticated" });
     }
+
     try {
-        const newProduct = new Product({ productName, description, category, subCategory, price, quantity, image })
-        const savedProduct = await newProduct.save()
-        res.status(200).json({ message: savedProduct })
+
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'products',
+        });
+
+        const newProduct = new Product({
+            productName,
+            description,
+            size,
+            category,
+            subCategory,
+            price,
+            quantity,
+            image: {
+                public_id: result.public_id,
+                url: result.url,
+                secure_url: result.secure_url
+            }
+        });
+
+        const savedProduct = await newProduct.save();
+
+        res.status(200).json({ message: 'Product added successfully', product: savedProduct });
     } catch (error) {
-        res.status(500).json({ errors: error.message })
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+exports.updateProduct = async (req, res) => {
+    const { productId } = req.params;
+    const { productName, description, category, subCategory, price, size, quantity } = req.body;
+
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ message: "Unauthenticated" });
+        }
+
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+
+        let updatedImage = product.image;
+
+        // If a new image is uploaded
+        if (req.file) {
+            // Optional: Delete previous image from Cloudinary
+            if (product.image && product.image.public_id) {
+                await cloudinary.uploader.destroy(product.image.public_id);
+            }
+
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: 'products',
+            });
+
+            updatedImage = {
+                public_id: result.public_id,
+                url: result.secure_url,
+            };
+        }
+
+        const updatedFields = {
+            productName,
+            description,
+            size,
+            category,
+            subCategory,
+            price,
+            quantity,
+            image: updatedImage, // Always set image — new or existing
+        };
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { $set: updatedFields },
+            { new: true }
+        );
+
+        res.status(200).json({ success: true, product: updatedProduct });
+    } catch (error) {
+        console.error("Error updating product:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+
+exports.deleteProduct = async (req, res) => {
+    const productId = req.params.productId
+    try {
+        const product = await Product.findByIdAndDelete(productId)
+        if (!product) {
+            res.status(400).json({ success: false, message: "product not deleted" });
+        }
+        res.status(200).json({ success: true, message: "deleted successfull" })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
     }
 }
 
@@ -87,36 +179,7 @@ exports.productcount = async (req, res) => {
     }
 }
 
-exports.updateProduct = async (req, res) => {
-    const updatedData = req.body;
-    const productId = req.params.productId
-    try {
-        const product = await Product.findByIdAndUpdate(
-            productId,
-            updatedData,
-            { new: true }
-        )
-        if (!product) {
-            return res.status(400).json({ success: false, message: "product not updated" })
-        }
-        res.status(200).json({ success: false, message: "product updated", data: product })
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message })
-    }
-}
 
-exports.deleteProduct = async (req, res) => {
-    const productId = req.params.productId
-    try {
-        const product = await Product.findByIdAndDelete(productId)
-        if (!product) {
-            res.status(400).json({ success: false, message: "product not deleted" });
-        }
-        res.status(200).json({ success: true, message: "deleted successfull" })
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message })
-    }
-}
 
 exports.getSuggestProduct = async (req, res) => {
     const search = req.query.search || "";

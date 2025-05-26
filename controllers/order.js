@@ -146,3 +146,19 @@ exports.cancelledOrderDetails = async (req, res) => {
     }
 }
 
+exports.deleteOrder = async (req, res) => {
+    const orderId = req.params.orderId
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ success: false, message: "Not Authenticated" });
+        }
+        const order = await Order.findByIdAndDelete(orderId)
+        if (!order) {
+            return res.status(400).json({ success: false, message: "order not deleted" })
+        }
+        res.status(200).json({ success: true, message: "order deleted" })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
