@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const Product = require('../models/Product');
+const Product = require('../models/product');
 const cloudinary = require('../utils/cloudinary');
 
 exports.addProduct = async (req, res) => {
