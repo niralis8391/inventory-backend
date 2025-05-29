@@ -1,8 +1,20 @@
-const Customer = require('../models/customer');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-const { decryptData } = require('../utils/decrypt')
+const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
+const { promisify } = require('util')
+
+const { decryptData } = require('../utils/decrypt');
+const Customer = require('../models/customer');
+const Order = require('../models/order');
+const { syncBuiltinESMExports } = require('module');
+
+if (!process.env.SENDGRID_API_KEY) {
+    console.error("Missing SENDGRID_API_KEY in .env file");
+    process.exit(1);
+}
+
 
 exports.postSignup = async (req, res) => {
     try {
@@ -80,6 +92,75 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ success: false, error: error.message })
     }
 }
+
+exports.findOrderByStatus = async (req, res) => {
+    let search = req.query.search || ""
+    try {
+        if (!req.userId) {
+            return res.status(403).json({ success: false, message: "Not Autnehticated" })
+        }
+        let customer = req.userId;
+        let order = await Order.find({ customer: customer });
+        let filter = order.filter((orders) => {
+            return orders.status === search
+        })
+        res.status(200).json({ success: true, data: filter.length, message: "found order by status" })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
+exports.getTotalOrdersCount = async (req, res) => {
+    try {
+        if (!req.userId) {
+            return res.status(403).json({ success: false, message: "Not Autnehticated" })
+        }
+        let customer = req.userId;
+        let order = await Order.find({ customer: customer });
+        const orderCount = order.length;
+        if (!orderCount) {
+            return res.status(404).json({ success: false, message: "orders count not found" });
+        }
+        res.status(200).json({ success: true, message: "orders count found", data: orderCount })
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message })
+    }
+}
+
+
+
+exports.postReset = async (req, res) => {
+    try {
+        if (!req.isAuth) {
+            return res.status(403).json({ success: false, message: "Not Authenticated" });
+        }
+
+        const randomBytesAsync = promisify(crypto.randomBytes);
+        const buffer = await randomBytesAsync(32);
+        const token = buffer.toString('hex');
+
+        const customer = await Customer.findOne({ email: req.body.email });
+        if (!customer) {
+            return res.status(404).json({ message: "No account with that email found." });
+        }
+
+        customer.resetToken = token;
+        customer.resetTokenExpiration = Date.now() + 36000000; // e.g., 10 hours
+        await customer.save();
+
+        // Use your sendEmail utility here
+        await sendEmail({
+            to: req.body.email,
+            from: 'parthrkakdiya.atmiya13@gmail.com',  // Must be verified in SendGrid
+            subject: "Reset Password",
+            html: `Click <a href="http://localhost:5174/user/reset/${token}">here</a> to reset your password`
+        });
+
+        res.status(200).json({ success: true, message: "Reset email sent" });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
 
 exports.changePasswordRequest = (req, res) => {
     try {

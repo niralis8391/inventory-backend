@@ -9,5 +9,8 @@ router.post('/signup', customerController.postSignup)
 router.post('/login', customerController.postLogin)
 router.get('/customerData', isAuth, customerController.customerData);
 router.put('/updateProfile', isAuth, customerController.updateProfile);
+router.post('/reset', isAuth, customerController.postReset);
+router.get('/getOrderByStatus', isAuth, customerController.findOrderByStatus)
+router.get('/getTotalOrdersCount', isAuth, customerController.getTotalOrdersCount)
 
 module.exports = router;
